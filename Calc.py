@@ -1,10 +1,12 @@
 # Calculator for Rust inputs
 # Addition, Subtraction, Multiplication, Division and Modulo operation
-INTEGER, PLUS, MINUS, MULTIPLY, DIVIDE, MODULO, EOF = 'INTEGER', 'PLUS', 'MINUS', 'MULTIPLY', 'DIVIDE', 'MODULO','EOF'
+INTEGER, PLUS, MINUS, MULTIPLY, DIVIDE, MODULO, LPAREN, RPAREN, EOF = (
+        'INTEGER', 'PLUS', 'MINUS', 'MULTIPLY', 'DIVIDE', 'MODULO', '(', ')', 'EOF'
+        )
 
 class Token(object):
     def __init__(self, type, value):
-        # token type: INTEGER, PLUS, MINUS, MULTIPLY, DIVIDE, MODULO, EOF
+        # token type: INTEGER, PLUS, MINUS, MULTIPLY, DIVIDE, LPAREN, RPAREN, MODULO, EOF
         self.type = type
         # value: +, -, *, /, %, None
         self.value = value
@@ -21,7 +23,7 @@ class Token(object):
     def __repr__(self):
         return self.__str__()
 
-class Interpreter(object):
+class Lexer(object):
     def __init__(self, text):
         # string input: "3 + 8"
         self.text = text
@@ -30,8 +32,6 @@ class Interpreter(object):
         # current token
         self.currentToken = None
         self.currentChar = self.text[self.pos]
-
-                        ### Lexer ###
 
     def error(self):
         raise Exception('Invalid syntax')
@@ -58,22 +58,6 @@ class Interpreter(object):
             self.advance()
 
         return int(result)
-
-    def term(self):
-        # to take care of operator precedence we group the terms
-        # which have a * or / operator
-
-        result = self.factor()
-        while self.currentToken.type in (MULTIPLY, DIVIDE):
-            token = self.currentToken
-            if token.type == MULTIPLY:
-                self.eat(MULTIPLY)
-                result = result * self.factor()
-            elif token.type == DIVIDE:
-                self.eat(DIVIDE)
-                result = result / self.factor()
-
-        return result
 
     def getNextToken(self):
         "Lexical Analyzer"
@@ -107,11 +91,26 @@ class Interpreter(object):
                 self.advance()
                 return Token(MODULO, '%')
 
+            if self.currentChar == '(':
+                self.advance()
+                return Token(LPAREN, '(')
+
+            if self.currentChar == ')':
+                self.advance()
+                return Token(RPAREN, ')')
+
             self.error()
 
         return Token(EOF, None)
 
-                ### Parser or Interpreter code ###
+class Interpreter(object):
+    def __init__(self, lexer):
+        self.lexer = lexer
+        # set current token to the first token taken from the input
+        self.currentToken = self.lexer.getNextToken()
+
+    def error(self):
+        raise Exception('Invalid syntax')
 
     def eat(self, tokenType):
         # compares the current token with the expected one
@@ -120,32 +119,53 @@ class Interpreter(object):
         # if not, it throws an error
 
         if self.currentToken.type == tokenType:
-            self.currentToken = self.getNextToken()
+            self.currentToken = self.lexer.getNextToken()
         else:
             self.error()
 
     def factor(self):
-        # returns an integer token value
+        """factor : INTEGER | LPAREN expr RPAREN"""
         token = self.currentToken
-        self.eat(INTEGER)
-        return token.value
+        if token.type == INTEGER:
+            self.eat(INTEGER)
+            return token.value
+        elif token.type == LPAREN:
+            self.eat(LPAREN)
+            result = self.expr()
+            self.eat(RPAREN)
+            return result
+
+    def term(self):
+        # to take care of operator precedence we group the terms
+        # which have a * or / operator
+
+        result = self.factor()
+        while self.currentToken.type in (MULTIPLY, DIVIDE, MODULO):
+            token = self.currentToken
+            if token.type == MULTIPLY:
+                self.eat(MULTIPLY)
+                result = result * self.factor()
+            elif token.type == DIVIDE:
+                self.eat(DIVIDE)
+                result = result / self.factor()
+            elif token.type == MODULO:
+                self.eat(MODULO)
+                result = result % self.factor()
+
+        return result
 
     def expr(self):
         # Reads and parses the arithmetic expression
-        self.currentToken = self.getNextToken()
 
         result = self.term()
-        while self.currentToken.type in (PLUS, MINUS, MODULO):
+        while self.currentToken.type in (PLUS, MINUS):
             token = self.currentToken
             if token.type == PLUS:
                 self.eat(PLUS)
-                result += self.term()
+                result = result + self.term()
             elif token.type == MINUS:
                 self.eat(MINUS)
-                result -= self.term()
-            elif token.type == MODULO:
-                self.eat(MODULO)
-                result = result%self.term()
+                result = result - self.term()
 
         return result
 
@@ -157,7 +177,8 @@ def main():
             break
         if not text:
             continue
-        interpreter = Interpreter(text)
+        lexer = Lexer(text)
+        interpreter = Interpreter(lexer)
         result = interpreter.expr()
         print(result)
 
