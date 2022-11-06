@@ -170,7 +170,7 @@ class Interpreter(object):
 
         return result
 
-def main():
+def main():             #this is main function
     while True:
         try:
             text = input('calc> ')
