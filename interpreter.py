@@ -2,8 +2,8 @@ import token
 import lexer
 import parser
 
-INTEGER, PLUS, MINUS, MULTIPLY, DIVIDE, MODULO, LPAREN, RPAREN, EOF = (
-        'INTEGER', 'PLUS', 'MINUS', 'MULTIPLY', 'DIVIDE', 'MODULO', '(', ')', 'EOF'
+INTEGER, PLUS, MINUS, MULTIPLY, DIVIDE, MODULO, LPAREN, RPAREN, ASSIGN, SEMI, ID, LCURL, RCURL, EOF = (
+        'INTEGER', 'PLUS', 'MINUS', 'MULTIPLY', 'DIVIDE', 'MODULO', '(', ')', '=', ';', 'ID', '{', '}', 'EOF'
         )
 
 class NodeVisitor(object):
@@ -31,6 +31,25 @@ class Interpreter(NodeVisitor):
 
     def visitNum(self, node):
         return node.value
+
+    def visitCompound(self, node):
+        for child in node.children:
+            self.visit(child)
+
+    def visitNoOp(self):
+        pass
+
+    def visitAssign(self, node):
+        varName = node.left.value
+        self.GLOBAL_SCOPE[varName] = self.visit(node.right)
+
+    def visitVar(self, node):
+        varName = node.value
+        val = self.GLOBAL_SCOPE.get(varName)
+        if val is None:
+            raise NameError(repr(varName))
+        else:
+            return val
 
     def interpreter(self):
         tree = self.parser.parse()

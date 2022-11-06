@@ -1,11 +1,34 @@
 import token
 import lexer
 
-INTEGER, PLUS, MINUS, MULTIPLY, DIVIDE, MODULO, LPAREN, RPAREN, EOF = (
-        'INTEGER', 'PLUS', 'MINUS', 'MULTIPLY', 'DIVIDE', 'MODULO', '(', ')', 'EOF'
+INTEGER, PLUS, MINUS, MULTIPLY, DIVIDE, MODULO, LPAREN, RPAREN, ASSIGN, SEMI, ID, LCURL, RCURL, EOF = (
+        'INTEGER', 'PLUS', 'MINUS', 'MULTIPLY', 'DIVIDE', 'MODULO', '(', ')', '=', ';', 'ID', '{', '}', 'EOF'
         )
 
 class AST(object):
+    pass
+
+class Compound(AST):
+    # contains all the statement nodes in its children varaibles
+    def __init__(self):
+        self.children = []
+
+class Assign(AST):
+    # assignment statements
+    # left node is the variable and the right node is the node returned by the expr parser method
+    def __init__(self, left, op, right):
+        self.left = left
+        self.token = self.op = op
+        self.right = right
+
+class Var(AST):
+    # holds a variable
+    def __init__(self, token):
+        self.token = token
+        self.value = token.value
+
+class NoOp(AST):
+    # empty statement
     pass
 
 class binOP(AST):
@@ -43,6 +66,9 @@ class Parser(object):
             node = self.expr()
             self.eat(RPAREN)
             return node
+        else:
+            node = self.variable()
+            return node
 
     def term(self):
         node = self.factor()
@@ -77,5 +103,80 @@ class Parser(object):
 
         return node
 
+    def program(self):
+        """Program Statement: compound_statement endOfProgram"""
+        node = self.compoundStatement()
+        return node
+
+    def compoundStatement(self):
+        """
+        compound statement = { statement_list }
+        """
+        self.eat(LCURL)
+        nodes = self.statementList()
+        self.eat(RCURL)
+
+        root = Compound()
+        for node in nodes:
+            root.children.append(node)
+
+        return root
+
+    def statementList(self):
+        """
+        statement_list : statement
+                       | statement SEMI statement_list
+        """
+        node = self.statement()
+
+        results = [node]
+        while self.currentToken.type == SEMI:
+            self.eat(SEMI)
+            results.append(self.statement())
+
+        if self.currentToken.type == ID:
+            self.error()
+
+        return results
+
+    def statement(self):
+        """
+            statement : compound_statement
+                      | assignment_statement
+                      | empty
+            """
+
+        if self.currentToken.type == LCURL:
+            node = self.compoundStatement()
+        elif self.currentToken.type == ID:
+            node = self.assignmentStatement
+        else:
+            node = self.empty()
+
+        return node
+
+    def assignmentStatement(self):
+        """
+        variable ASSIGN expr
+        """
+        left = self.variable()
+        token = self.currentToken
+        self.eat(ASSIGN)
+        right = self.expr()
+        node = Assign(left, token, right)
+        return node
+
+    def variable(self):
+        # variable: ID
+        node = Var(self.currentToken)
+        self.eat(ID)
+        return node
+
+    def empty(self):
+        return NoOp()
+
     def parse(self):
-        return self.expr()
+        node = self.program()
+        if self.currentToken.type != EOF:
+            self.error()
+        return node

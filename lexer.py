@@ -1,8 +1,16 @@
 import token
 
-INTEGER, PLUS, MINUS, MULTIPLY, DIVIDE, MODULO, LPAREN, RPAREN, EOF = (
-        'INTEGER', 'PLUS', 'MINUS', 'MULTIPLY', 'DIVIDE', 'MODULO', '(', ')', 'EOF'
+INTEGER, PLUS, MINUS, MULTIPLY, DIVIDE, MODULO, LPAREN, RPAREN, ASSIGN, SEMI, ID, LCURL, RCURL, EOF = (
+        'INTEGER', 'PLUS', 'MINUS', 'MULTIPLY', 'DIVIDE', 'MODULO', '(', ')', '=', ';', 'ID', '{', '}', 'EOF'
         )
+
+# identifiers: for, if, else if, else
+RESERVED_KEYWORDS = {
+    'for': token.Token('for', 'for'),
+    'if': token.Token('if', 'if'),
+    'else if': token.Token('else if', 'else if'),
+    'else': token.Token('else', 'else')
+}
 
 class Lexer(object):
     def __init__(self, text):
@@ -47,6 +55,16 @@ class Lexer(object):
 
         return int(result)
 
+    def _id(self):
+        # handles indentifiers
+        result = ''
+        while self.currentChar is not None and self.currentChar.isalnum():
+            result += self.currentChar
+            self.advance()
+
+        tok = RESERVED_KEYWORDS.get(result, token.Token(ID, result))
+        return tok
+
     def getNextToken(self):
         "Lexical Analyzer"
         "Breaks the input into tokens"
@@ -86,6 +104,17 @@ class Lexer(object):
             if self.currentChar == ')':
                 self.advance()
                 return token.Token(RPAREN, ')')
+
+            if self.current_char.isalpha():
+                return self._id()
+
+            if self.current_char == '=' and self.peek() != '=':
+                self.advance()
+                return token.Token(ASSIGN, ':=')
+
+            if self.current_char == ';':
+                self.advance()
+                return token.Token(SEMI, ';')
 
             self.error()
 
