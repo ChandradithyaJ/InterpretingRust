@@ -1,46 +1,96 @@
 import token
 import lexer
 
-INTEGER, PLUS, MINUS, MULTIPLY, DIVIDE, MODULO, LPAREN, RPAREN, ASSIGN, SEMI, ID, LCURL, RCURL, EOF = (
-        'INTEGER', 'PLUS', 'MINUS', 'MULTIPLY', 'DIVIDE', 'MODULO', '(', ')', '=', ';', 'ID', '{', '}', 'EOF'
-        )
+INTEGER = 'INTEGER'
+NUMBER = 'NUMBER'
 
-class AST(object):
-    pass
+PLUS = 'PLUS'
+MINUS = 'MINUS'
+MULTIPLY = 'MULTIPLY'
+DIVIDE = 'DIVIDE'
+MODULO = 'MODULO'
 
-class Compound(AST):
-    # contains all the statement nodes in its children varaibles
-    def __init__(self):
-        self.children = []
+LPAREN = '('
+RPAREN = ')'
+LCURL = '{'
+RCURL = '}'
 
-class Assign(AST):
+ASSIGN = '='
+SEMI = ';'
+ID = 'ID'
+COMMA = ','
+DOT = '.'
+
+FOR = 'FOR'
+IF = 'IF'
+ELSE = 'ELSE'
+LET = 'LET'
+
+EOF = 'EOF'
+
+class Node(object):
+    def __init__(self, line):
+        self.line = line
+
+class Program(Node):
+    def __init__(self, declarations, line):
+        Node.__init__(self, line)
+        self.children = declarations
+
+class VarDecl(Node):
+    def __init__(self, varNode, typeNode, line):
+        Node.__init__(self, line)
+        self.varNode = varNode
+        self.typeNode = typeNode
+
+class Type(Node):
+    def __init__(self, token, line):
+        Node.__init__(self, line)
+        self.token = token
+        self.value = token.value
+
+class Expression(Node):
+    def __init__(self, children, line):
+        Node.__init__(self, line)
+        self.children = children
+
+class Assign(Node):
     # assignment statements
     # left node is the variable and the right node is the node returned by the expr parser method
-    def __init__(self, left, op, right):
+    def __init__(self, left, op, right, line):
+        Node.__init__(self, line)
         self.left = left
         self.token = self.op = op
         self.right = right
 
-class Var(AST):
+class Var(Node):
     # holds a variable
-    def __init__(self, token):
+    def __init__(self, token, line):
+        Node.__init__(self, line)
         self.token = token
         self.value = token.value
 
-class NoOp(AST):
+class NoOp(Node):
     # empty statement
     pass
 
-class binOP(AST):
-    def __init__(self, left, op, right):
+class BinOP(Node):
+    def __init__(self, left, op, right, line):
+        Node.__init__(self, line)
         self.left = left
         self.token = self.op = op
         self.right = right
 
-class Num(AST):
-    def __init__(self, token):
+class Num(Node):
+    def __init__(self, token, line):
+        Node.__init__(self, line)
         self.token = token
         self.value = token.value
+
+class CompoundStmt(Node):
+    def __init__(self, children, line):
+        Node.__init__(self, line)
+        self.children = children
 
 class Parser(object):
     def __init__(self, lexer):
@@ -55,6 +105,233 @@ class Parser(object):
             self.currentToken = self.lexer.getNextToken()
         else:
             self.error()
+
+    def program(self):
+        """Program Statement:   declarations"""
+        root = Program(
+            declarations= self.declarations(),
+            line = self.lexer.line
+        )
+        return root
+
+    def declarations(self):
+        """
+        declarations: declarationList
+        """
+        declarations = []
+        while self.currentToken.type == LET:
+            declarations.extend(self.declarationList)
+        return declarations
+
+    def declarationList(self):
+        """
+        declarationList: declaration+
+        """
+        result = self.declaration()
+        while self.currentToken.type == LET:
+            result.extend(self.declaration())
+        return result
+
+    def declaration(self):
+        """
+        declaration: typeSpec init_declaratorList SEMICOLON
+        """
+        result = list()
+        typeNode = self.typeSpec()
+        for node in self.init_declaratorList():
+            if(isinstance(node, Var)):
+                result.append(VarDecl(
+                    typeNode=typeNode,
+                    varNode=node,
+                    line=self.lexer.line
+                ))
+            else:
+                result.append(node)
+            self.eat(SEMI)
+            return result
+
+    def init_declaratorList(self):
+        """
+        init_declaratorList: init_declarator (COMMA init_declarator)*
+        """
+        result = list()
+        result.extend(self.init_declarator())
+        while self.currentToken.type == COMMA:
+            self.eat(COMMA)
+            result.extend(self.init_declarator())
+        return result
+
+    def init_declarator(self):
+        """
+        init_declarator: variable (ASSIGN assignmentExpression)
+        """
+        var = self.variable()
+        result = list()
+        result.append(var)
+        if self.currentToken.type == ASSIGN:
+            token = self.currentToken
+            self.eat(ASSIGN)
+            result.append(Assign(
+                left=var,
+                op=token,
+                right=self.assignmentExpression(),
+                line=self.lexer.line
+            ))
+        return result
+
+    def statement(self):
+        """
+        statement:  iterationStatement
+                    selectionStatement
+                    compoundStatement
+                    expressionStatement
+        Will add their functionalities and more later
+        """
+        if self.checkCompoundStatement():
+            return self.compoundStatement()
+        return self.expressionStatement()
+
+    def checkCompoundStatement(self):
+        return self.currentToken.type == LCURL
+
+    def compoundStatement(self):
+        """
+        compoundStatement: LCURL (delcarationList | statement)* RCURL
+        """
+        result = []
+        self.eat(LCURL)
+        while self.currentToken.type != RCURL:
+            if self.currentToken.type == LET:
+                result.extend(self.declarationList())
+            else:
+                result.append(self.statement())
+        self.eat(RCURL)
+        return CompoundStmt(
+            children=result,
+            line=self.lexer.line
+        )
+
+    def expressionStatement(self):
+        """
+        expressionStatement: expression* SEMICOLON
+        """
+
+        node = None
+        if self.currentToken.type != SEMI:
+            node = self.expression()
+        self.eat(SEMI)
+        return node and node or NoOp(line=self.lexer.line)
+
+    def expression(self):
+        """
+        expression: assignmentExpression (COMMA assignmentExpression)
+        """
+        result = list()
+        result.append(self.assignExpression())
+        while self.currentToken.type == COMMA:
+            self.eat(COMMA)
+            result.append(self.assignExpression())
+        return Expression(
+            children=result,
+            line=self.lexer.line
+        )
+
+    def checkAssignmentExpression(self):
+        if self.currentToken.type == ID:
+            self.eat(ID)
+            return (self.currentToken.type == ASSIGN)
+        return False
+
+    def assignmentExpression(self):
+        """
+        assignment_expression       : assignment_expression (COMMA assignment_expression)*
+        """
+        if self.checkAssignmentExpression():
+            node = self.variable()
+            while self.currentToken.type == ASSIGN:
+                token = self.currentToken
+                self.eat(token.type)
+                return Assign(
+                    left= node,
+                    op=token,
+                    right= self.assignmentExpression(),
+                    line=self.lexer.line
+                )
+
+    def argumentExpressionList(self):
+        """
+        argument_expression_list    : assignment_expression (COMMA assignment_expression)*
+        """
+        args = [self.assignmentExpression()]
+        while self.currentToken.type == COMMA:
+            self.eat(COMMA)
+            args.append(self.assignmentExpression())
+        return args
+
+    def primary_expression(self):
+        """
+        primary_expression          : LPAREN expression RPAREN
+                                    | constant
+                                    | variable
+        """
+        token = self.currentToken
+        if token.type == LPAREN:
+            self.eat(LPAREN)
+            node = self.expression()
+            self.eat(RPAREN)
+            return node
+        elif token.type in (INTEGER, NUMBER):
+            return self.constant()
+        else:
+            return self.variable()
+
+    def constant(self):
+        """
+        constant                    : INTEGER_CONST
+                                    | REAL_CONST
+        """
+        token = self.currentToken
+        if token.type == INTEGER:
+            self.eat(INTEGER)
+            return Num(
+                token=token,
+                line=self.lexer.line
+            )
+        elif token.type == NUMBER:
+            self.eat(Num)
+            return Num(
+                token=token,
+                line=self.lexer.line
+            )
+
+    def typeSpec(self):
+        """
+        typeSpec: Type
+        """
+        token = self.currentToken
+        if token.type == LET:
+            self.eat(token.type)
+            return Type(
+                token=token,
+                line=self.lexer.line
+            )
+
+    def variable(self):
+        """
+        variable: ID
+        """
+        node = Var(
+            token=self.currentToken,
+            line=self.lexer.line
+        )
+        self.eat(ID)
+        return node
+
+    def empty(self):
+        """An empty production"""
+        return NoOp(
+            line=self.lexer.line
+        )
 
     def factor(self):
         token = self.currentToken
@@ -80,7 +357,7 @@ class Parser(object):
                 self.eat(DIVIDE)
             elif token.type == MODULO:
                 self.eat(MODULO)
-            node = binOP(left = node, op = token, right = self.factor())
+            node = BinOP(left = node, op = token, right = self.factor())
 
         return node
 
@@ -99,81 +376,9 @@ class Parser(object):
             elif token.type == MINUS:
                 self.eat(MINUS)
 
-            node = binOP(left=node, op=token, right=self.term())
+            node = BinOP(left=node, op=token, right=self.term())
 
         return node
-
-    def program(self):
-        """Program Statement: compound_statement endOfProgram"""
-        node = self.compoundStatement()
-        return node
-
-    def compoundStatement(self):
-        """
-        compound statement = { statement_list }
-        """
-        self.eat(LCURL)
-        nodes = self.statementList()
-        self.eat(RCURL)
-
-        root = Compound()
-        for node in nodes:
-            root.children.append(node)
-
-        return root
-
-    def statementList(self):
-        """
-        statement_list : statement
-                       | statement SEMI statement_list
-        """
-        node = self.statement()
-
-        results = [node]
-        while self.currentToken.type == SEMI:
-            self.eat(SEMI)
-            results.append(self.statement())
-
-        if self.currentToken.type == ID:
-            self.error()
-
-        return results
-
-    def statement(self):
-        """
-            statement : compound_statement
-                      | assignment_statement
-                      | empty
-            """
-
-        if self.currentToken.type == LCURL:
-            node = self.compoundStatement()
-        elif self.currentToken.type == ID:
-            node = self.assignmentStatement
-        else:
-            node = self.empty()
-
-        return node
-
-    def assignmentStatement(self):
-        """
-        variable ASSIGN expr
-        """
-        left = self.variable()
-        token = self.currentToken
-        self.eat(ASSIGN)
-        right = self.expr()
-        node = Assign(left, token, right)
-        return node
-
-    def variable(self):
-        # variable: ID
-        node = Var(self.currentToken)
-        self.eat(ID)
-        return node
-
-    def empty(self):
-        return NoOp()
 
     def parse(self):
         node = self.program()

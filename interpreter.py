@@ -2,9 +2,32 @@ import token
 import lexer
 import parser
 
-INTEGER, PLUS, MINUS, MULTIPLY, DIVIDE, MODULO, LPAREN, RPAREN, ASSIGN, SEMI, ID, LCURL, RCURL, EOF = (
-        'INTEGER', 'PLUS', 'MINUS', 'MULTIPLY', 'DIVIDE', 'MODULO', '(', ')', '=', ';', 'ID', '{', '}', 'EOF'
-        )
+INTEGER = 'INTEGER'
+NUMBER = 'NUMBER'
+
+PLUS = 'PLUS'
+MINUS = 'MINUS'
+MULTIPLY = 'MULTIPLY'
+DIVIDE = 'DIVIDE'
+MODULO = 'MODULO'
+
+LPAREN = '('
+RPAREN = ')'
+LCURL = '{'
+RCURL = '}'
+
+ASSIGN = '='
+SEMI = ';'
+ID = 'ID'
+COMMA = ','
+DOT = '.'
+
+FOR = 'FOR'
+IF = 'IF'
+ELSE = 'ELSE'
+LET = 'LET'
+
+EOF = 'EOF'
 
 class NodeVisitor(object):
     def visit(self, node):
@@ -13,7 +36,7 @@ class NodeVisitor(object):
         return visitor(node)
 
     def genericVisit(self, node):
-        raise Exception('No visit_{} method'.format(type(node).__name__))
+        raise Exception('No visit{} method'.format(type(node).__name__))
 
 class Interpreter(NodeVisitor):
     def __init__(self, parser):
@@ -51,23 +74,38 @@ class Interpreter(NodeVisitor):
         else:
             return val
 
-    def interpreter(self):
+    def visitType(self, node):
+        pass
+
+    def visitVarDecl(self, node):
+        pass
+
+    def visitProgram(self, node):
+        self.visit(node.block)
+
+    def visitBlock(self, node):
+        for declaration in node.declarations:
+            self.visit(declaration)
+        self.visit(node.compoundStatement)
+
+    def interpret(self):
         tree = self.parser.parse()
+        if tree is None:
+            return ''
         return self.visit(tree)
 
+
 def main():
-    while True:
-        try:
-            text = input('Rust Interpreter> ')
-        except EOFError:
-            break
-        if not text:
-            continue
-        LEXER = lexer.Lexer(text)
-        PARSER = parser.Parser(LEXER)
-        INTERPRETER = Interpreter(PARSER)
-        result = INTERPRETER.interpreter()
-        print(result)
+    import sys
+    text = input('Rust Interpreter> ')
+
+    LEXER = lexer.Lexer(text)
+    PARSER = parser.Parser(LEXER)
+    INTERPRETER = Interpreter(PARSER)
+    result = INTERPRETER.interpret()
+
+    for k, v in sorted(INTERPRETER.GLOBAL_SCOPE.items()):
+        print('{} = {}'.format(k, v))
 
 if __name__ == '__main__':
         main()
