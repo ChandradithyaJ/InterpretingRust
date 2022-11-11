@@ -9,6 +9,13 @@ MULTIPLY = 'MULTIPLY'
 DIVIDE = 'DIVIDE'
 MODULO = 'MODULO'
 
+EQ = '=='
+NE = '!='
+GT = '>'
+LT = '<'
+GE = '>='
+LE = '<='
+
 LPAREN = '('
 RPAREN = ')'
 LCURL = '{'
@@ -20,10 +27,10 @@ ID = 'ID'
 COMMA = ','
 DOT = '.'
 
-FOR = 'FOR'
-IF = 'IF'
-ELSE = 'ELSE'
-LET = 'LET'
+FOR = 'for'
+IF = 'if'
+ELSE = 'else'
+LET = 'let'
 
 EOF = 'EOF'
 
@@ -33,8 +40,8 @@ RESERVED_KEYWORDS = {
     'if': token.Token(IF, 'if'),
     'else': token.Token(ELSE, 'else'),
     'let': token.Token(LET, 'let'),
-    #'let mut': token.Token('let mut', 'let mut'),
-    #'in': token.Token('IN', 'in')
+    # 'let mut': token.Token('let mut', 'let mut'),
+    # 'in': token.Token('IN', 'in')
 }
 
 class Lexer(object):
@@ -46,8 +53,8 @@ class Lexer(object):
         # line of the text
         self.line = 1
         # current token
-        self.currentToken = None
-        self.currentChar = self.text[self.pos]
+        self.current_token = None
+        self.current_char = self.text[self.pos]
 
     def error(self):
         raise Exception('Invalid syntax')
@@ -57,37 +64,37 @@ class Lexer(object):
         self.pos += 1
 
         if self.pos > len(self.text) - 1:
-            self.currentChar = None
+            self.current_char = None
         else:
-            self.currentChar = self.text[self.pos]
+            self.current_char = self.text[self.pos]
 
     def peek(self, n):
-        peekPos = self.pos + n
-        if peekPos > len(self.text) - 1:
+        peek_pos = self.pos + n
+        if peek_pos > len(self.text) - 1:
             return None
         else:
-            return self.text[peekPos]
+            return self.text[peek_pos]
 
-    def skipWhiteSpace(self):
+    def skip_white_space(self):
         # skip white spaces
-        while self.currentChar is not None and self.currentChar.isspace():
-            if self.currentChar == '\n':
+        while self.current_char is not None and self.current_char.isspace():
+            if self.current_char == '\n':
                 self.line += 1
             self.advance()
 
     def number(self):
-        # return an integer read in from the input
+        # return an integer or a float read in from the input
         result = ''
-        while self.currentChar is not None and self.currentChar.isdigit():
-            result += self.currentChar
+        while self.current_char is not None and self.current_char.isdigit():
+            result += self.current_char
             self.advance()
 
-        if self.currentChar == '.':
-            result += self.currentChar
+        if self.current_char == '.':
+            result += self.current_char
             self.advance()
 
-            while self.currentChar is not None and self.currentChar.isdigit():
-                result += self.currentChar
+            while self.current_char is not None and self.current_char.isdigit():
+                result += self.current_char
                 self.advance()
 
             tok = token.Token('NUMBER', float(result))
@@ -100,78 +107,110 @@ class Lexer(object):
     def _id(self):
         # handles identifiers and reserved keywords
         result = ''
-        while self.currentChar is not None and self.currentChar.isalnum():
-            result += self.currentChar
+        while self.current_char is not None and self.current_char.isalnum():
+            result += self.current_char
             self.advance()
 
         tok = RESERVED_KEYWORDS.get(result, token.Token(ID, result))
         return tok
 
-    def getNextToken(self):
+    def get_next_token(self):
         "Lexical Analyzer"
         "Breaks the input into tokens"
 
-        while self.currentChar is not None:
-            if self.currentChar.isspace():
-                self.skipWhiteSpace()
+        while self.current_char is not None:
+            if self.current_char.isspace():
+                self.skip_white_space()
                 continue
 
-            if self.currentChar.isdigit():
+            if self.current_char.isdigit():
                 return self.number()
 
-            if self.currentChar.isalpha():
+            if self.current_char.isalpha():
                 return self._id()
 
-            if self.currentChar == '+':
+            if self.current_char == '+':
                 self.advance()
                 return token.Token(PLUS, '+')
 
-            if self.currentChar == '-':
+            if self.current_char == '-':
                 self.advance()
                 return token.Token(MINUS, '-')
 
-            if self.currentChar == '*':
+            if self.current_char == '*':
                 self.advance()
                 return token.Token(MULTIPLY, '*')
 
-            if self.currentChar == '/':
+            if self.current_char == '/':
                 self.advance()
                 return token.Token(DIVIDE, '/')
 
-            if self.currentChar == '%':
+            if self.current_char == '%':
                 self.advance()
                 return token.Token(MODULO, '%')
 
-            if self.currentChar == '(':
+            if self.current_char == '(':
                 self.advance()
                 return token.Token(LPAREN, '(')
 
-            if self.currentChar == ')':
+            if self.current_char == ')':
                 self.advance()
                 return token.Token(RPAREN, ')')
 
-            if self.currentChar == '{':
+            if self.current_char == '{':
                 self.advance()
                 return token.Token(LCURL, '{')
 
-            if self.currentChar == '}':
+            if self.current_char == '}':
                 self.advance()
                 return token.Token(RCURL, '}')
 
-            if self.currentChar == '=':
+            if self.current_char == '=':
                 self.advance()
                 return token.Token(ASSIGN, '=')
 
-            if self.currentChar == ';':
+            if self.current_char == '=' and self.peek(1) == '=':
+                self.advance()
+                self.advance()
+                return token.Token(EQ, '==')
+
+            if self.current_char == '!' and self.peek(1) == '=':
+                self.advance()
+                self.advance()
+                return token.Token(NE, '!=')
+
+            if self.current_char == '<' and self.peek(1) == '=':
+                self.advance()
+                self.advance()
+                return token.Token(LE, '<=')
+
+            if self.current_char == '>' and self.peek(1) == '=':
+                self.advance()
+                self.advance()
+                return token.Token(GE, '>=')
+
+            if self.current_char == '>':
+                self.advance()
+                return token.Token(GT, '>')
+
+            if self.current_char == '<':
+                self.advance()
+                return token.Token(LT, '<')
+
+            if self.current_char == ';':
                 self.advance()
                 return token.Token(SEMI, ';')
 
-            if self.currentChar == ',':
+            if self.current_char == ',':
                 self.advance()
                 return token.Token(COMMA, ',')
 
+            if self.current_char == chr(26):
+                return token.Token(EOF, 'EOF')
+
+
             self.error(
-                message = "Invalid char {} at line {}".format(self.currentChar, self.line)
+                message="Invalid char {} at line {}".format(self.current_char, self.line)
             )
 
         return token.Token(EOF, None)
