@@ -2,6 +2,7 @@ import lexer
 
 INTEGER = 'INTEGER'
 NUMBER = 'NUMBER'
+STR = 'STR'
 TRUE = 'true'
 FALSE = 'false'
 
@@ -28,6 +29,7 @@ SEMI = ';'
 ID = 'ID'
 COMMA = ','
 DOT = '.'
+QUO = '"'
 
 FOR = 'for'
 IF = 'if'
@@ -154,7 +156,6 @@ class Parser(object):
                         | assignment_statement
                         | empty
         """
-        print(self.current_token.type)
         if self.current_token.type == LET:
             node = self.assignment_statement()
         elif self.current_token.type == IF:
@@ -287,6 +288,9 @@ class Parser(object):
             return Num(token)
         elif token.type == NUMBER:
             self.eat(NUMBER)
+            return Num(token)
+        elif token.type == STR:
+            self.eat(STR)
             return Num(token)
         elif token.type == LPAREN:
             self.eat(LPAREN)

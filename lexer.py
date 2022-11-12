@@ -2,6 +2,7 @@ import token
 
 INTEGER = 'INTEGER'
 NUMBER = 'NUMBER'
+STR = 'STR'
 TRUE = 'true'
 FALSE = 'false'
 
@@ -28,6 +29,7 @@ SEMI = ';'
 ID = 'ID'
 COMMA = ','
 DOT = '.'
+QUO = '"'
 
 FOR = 'for'
 IF = 'if'
@@ -38,7 +40,7 @@ WHILE = 'while'
 
 EOF = 'EOF'
 
-# identifiers: for, if, else if, else
+# identifiers: for, if, else if, else, while
 RESERVED_KEYWORDS = {
     'for': token.Token(FOR, 'for'),
     'if': token.Token(IF, 'if'),
@@ -108,6 +110,18 @@ class Lexer(object):
 
         return tok
 
+    def string(self):
+        # returns a string read in from the input
+        result = ''
+        self.advance()
+        while self.current_char is not None and self.current_char != '"':
+            result += self.current_char
+            self.advance()
+        self.advance()
+
+        tok = token.Token('STR', result)
+        return tok
+
     def _id(self):
         # handles identifiers and reserved keywords
         result = ''
@@ -129,6 +143,9 @@ class Lexer(object):
 
             if self.current_char.isdigit():
                 return self.number()
+
+            if self.current_char == '"':
+                return self.string()
 
             if self.current_char.isalpha():
                 return self._id()
@@ -244,7 +261,6 @@ class Lexer(object):
 
             if self.current_char == chr(26):
                 return token.Token(EOF, 'EOF')
-
 
             self.error(
                 message="Invalid char {} at line {}".format(self.current_char, self.line)
