@@ -108,6 +108,7 @@ class Var(AST):
 class NoOp(AST):
     pass
 
+
 class Parser(object):
     def __init__(self, lexer):
         self.lexer = lexer
@@ -322,7 +323,6 @@ class Parser(object):
         while self.current_token.type != EOF:
             self.error()
         return node
-
 
 
 def main():

@@ -102,7 +102,6 @@ class Interpreter(NodeVisitor):
         else:
             return val
 
-
     def visit_If(self, node):
         pass
 
@@ -110,7 +109,8 @@ class Interpreter(NodeVisitor):
         pass
 
     def visit_While(self, node):
-        pass
+        while self.visit(node.condition):
+            self.visit(node.body)
 
     def visit_Compare(self, node):
         pass
