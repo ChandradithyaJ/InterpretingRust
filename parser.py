@@ -2,6 +2,8 @@ import lexer
 
 INTEGER = 'INTEGER'
 NUMBER = 'NUMBER'
+TRUE = 'true'
+FALSE = 'false'
 
 PLUS = 'PLUS'
 MINUS = 'MINUS'
@@ -29,8 +31,10 @@ DOT = '.'
 
 FOR = 'for'
 IF = 'if'
+ELSEIF = 'else if'
 ELSE = 'else'
 LET = 'let'
+WHILE = 'while'
 
 EOF = 'EOF'
 
@@ -63,6 +67,26 @@ class Assign(AST):
         self.left = left
         self.token = self.op = op
         self.right = right
+
+
+class If(AST):
+    def __init__(self, condition, body, elseif_body, else_body):
+        self.condition = condition
+        self.body = body
+        self.elseif_body = elseif_body
+        self.else_body = else_body
+
+
+class ElseIf(AST):
+    def __init__(self, condition, body):
+        self.condition = condition
+        self.body = body
+
+
+class While(AST):
+    def __init__(self, condition, body):
+        self.condition = condition
+        self.body = body
 
 
 class Compare(AST):
@@ -119,24 +143,28 @@ class Parser(object):
         node = self.statement()
         results = [node]
 
-        while self.current_token.type != EOF:
+        while self.current_token.type != EOF and self.current_token.type != RCURL:
             results.append(self.statement())
 
         return results
 
     def statement(self):
         """
-        statement:      compound_statememt
+        statement:      compound_statement
                         | assignment_statement
                         | empty
         """
+        print(self.current_token.type)
         if self.current_token.type == LET:
             node = self.assignment_statement()
+        elif self.current_token.type == IF:
+            node = self.if_statement()
+        elif self.current_token.type == WHILE:
+            node = self.while_statement()
         else:
-            node = self.bool_expr()
+            node = self.conditional_statement()
 
         return node
-        # more to be added (if, while)
 
     ################
 
@@ -155,6 +183,48 @@ class Parser(object):
 
     ################
 
+    def if_statement(self):
+        """
+        if_statement:       expr comparison_operator expr { statement_list } (else if* | else | empty)
+        """
+        self.eat(IF)
+        condition = self.conditional_statement()
+        self.eat(LCURL)
+        body = self.statement_list()
+        self.eat(RCURL)
+        elseif_body = self.empty()
+        else_body = self.empty()
+
+        elseifs = []
+        while self.current_token.type == ELSEIF:
+            self.eat(ELSEIF)
+            elseif_condition = self.conditional_statement()
+            self.eat(LCURL)
+            elseif_body = self.statement_list()
+            elseif_node = ElseIf(elseif_condition, elseif_body)
+            elseifs.append(elseif_node)
+            self.eat(RCURL)
+        if self.current_token.type == ELSE:
+            self.eat(ELSE)
+            self.eat(LCURL)
+            else_body = self.statement_list()
+            self.eat(RCURL)
+        node = If(condition=condition, body=body, elseif_body=elseifs, else_body=else_body)
+        return node
+
+    ################
+
+    def while_statement(self):
+        self.eat(WHILE)
+        condition = self.conditional_statement()
+        self.eat(LCURL)
+        body = self.statement_list()
+        self.eat(RCURL)
+        node = While(condition=condition, body=body)
+        return node
+
+    ################
+
     def variable(self):
         """
         variable:   ID
@@ -167,8 +237,8 @@ class Parser(object):
         """empty production"""
         return NoOp()
 
-    def bool_expr(self):
-        """"bool_expr: expr comparison_operator expr"""
+    def conditional_statement(self):
+        """"conditional_statement: expr comparison_operator expr"""
         node = self.expr()
 
         while self.current_token.type in (EQ, NE, GT, LT, GE, LE):

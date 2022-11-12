@@ -2,6 +2,8 @@ import token
 
 INTEGER = 'INTEGER'
 NUMBER = 'NUMBER'
+TRUE = 'true'
+FALSE = 'false'
 
 PLUS = 'PLUS'
 MINUS = 'MINUS'
@@ -29,8 +31,10 @@ DOT = '.'
 
 FOR = 'for'
 IF = 'if'
+ELSEIF = 'else if'
 ELSE = 'else'
 LET = 'let'
+WHILE = 'while'
 
 EOF = 'EOF'
 
@@ -38,10 +42,10 @@ EOF = 'EOF'
 RESERVED_KEYWORDS = {
     'for': token.Token(FOR, 'for'),
     'if': token.Token(IF, 'if'),
+    'else if': token.Token(ELSEIF, 'else if'),
     'else': token.Token(ELSE, 'else'),
+    'while': token.Token(WHILE, 'while'),
     'let': token.Token(LET, 'let'),
-    # 'let mut': token.Token('let mut', 'let mut'),
-    # 'in': token.Token('IN', 'in')
 }
 
 class Lexer(object):
@@ -204,6 +208,39 @@ class Lexer(object):
             if self.current_char == ',':
                 self.advance()
                 return token.Token(COMMA, ',')
+
+            if self.current_char == 'i' and self.peek(1) == 'f' and self.peek(2) == ' ':
+                self.advance()
+                self.advance()
+                self.advance()
+                return token.Token(IF, 'if')
+
+            if self.current_char == 'e' and self.peek(1) == 'l' and self.peek(2) == 's' and self.peek(3) == 'e' and self.peek(4) == ' ' and self.peek(5) == 'i' and self.peek(6) == 'f' and self.peek(7) == ' ':
+                self.advance()
+                self.advance()
+                self.advance()
+                self.advance()
+                self.advance()
+                self.advance()
+                self.advance()
+                self.advance()
+                return token.Token(ELSEIF, 'else if')
+
+            if self.current_char == 'e' and self.peek(1) == 'l' and self.peek(2) == 's' and self.peek(3) == 'e':
+                self.advance()
+                self.advance()
+                self.advance()
+                self.advance()
+                return token.Token(ELSE, 'else')
+
+            if self.current_char == 'w' and self.peek(1) == 'h' and self.peek(2) == 'i' and self.peek(3) == 'l' and self.peek(4) == 'e' and self.peek(5) == ' ':
+                self.advance()
+                self.advance()
+                self.advance()
+                self.advance()
+                self.advance()
+                self.advance()
+                return token.Token(WHILE, 'while')
 
             if self.current_char == chr(26):
                 return token.Token(EOF, 'EOF')

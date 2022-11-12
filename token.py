@@ -1,11 +1,20 @@
 INTEGER = 'INTEGER'
 NUMBER = 'NUMBER'
+TRUE = 'true'
+FALSE = 'false'
 
 PLUS = 'PLUS'
 MINUS = 'MINUS'
 MULTIPLY = 'MULTIPLY'
 DIVIDE = 'DIVIDE'
 MODULO = 'MODULO'
+
+EQ = '=='
+NE = '!='
+GT = '>'
+LT = '<'
+GE = '>='
+LE = '<='
 
 LPAREN = '('
 RPAREN = ')'
@@ -18,10 +27,12 @@ ID = 'ID'
 COMMA = ','
 DOT = '.'
 
-FOR = 'FOR'
-IF = 'IF'
-ELSE = 'ELSE'
-LET = 'LET'
+FOR = 'for'
+IF = 'if'
+ELSEIF = 'else if'
+ELSE = 'else'
+LET = 'let'
+WHILE = 'while'
 
 EOF = 'EOF'
 
@@ -39,7 +50,7 @@ class Token(object):
             Token(INTEGER, 3)
             Token(PLUS, '+')
         """
-        return 'Token({type}, {value})'.format(type = self.type, value = repr(self.value))
+        return 'Token({type}, {value})'.format(type=self.type, value=repr(self.value))
 
     def __repr__(self):
         return self.__str__()
