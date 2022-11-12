@@ -7,3 +7,12 @@ my_name = my_name + "dithya";
 while a < 45 {
     a = a+1;
 }
+if a < 40 {
+    my_name = my_name + " J";
+}
+else if a == 45 {
+    my_name = my_name + " J";
+}
+else {
+    my_name = my_name + " J";
+}

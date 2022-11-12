@@ -72,17 +72,10 @@ class Assign(AST):
 
 
 class If(AST):
-    def __init__(self, condition, body, elseif_body, else_body):
+    def __init__(self, condition, body, control_body):
         self.condition = condition
         self.body = body
-        self.elseif_body = elseif_body
-        self.else_body = else_body
-
-
-class ElseIf(AST):
-    def __init__(self, condition, body):
-        self.condition = condition
-        self.body = body
+        self.control_body = control_body
 
 
 class While(AST):
@@ -194,24 +187,40 @@ class Parser(object):
         self.eat(LCURL)
         body = self.statement_list()
         self.eat(RCURL)
-        elseif_body = self.empty()
-        else_body = self.empty()
 
-        elseifs = []
-        while self.current_token.type == ELSEIF:
-            self.eat(ELSEIF)
-            elseif_condition = self.conditional_statement()
+        # else_if or else body
+        control_body = self.empty()
+        flag = 0
+        if self.current_token.type == ELSEIF:
+            control_body = self.elseif_statement()
+            flag += 1
+
+        if flag == 0 and self.current_token.type == ELSE:
+            self.eat(ELSE)
             self.eat(LCURL)
-            elseif_body = self.statement_list()
-            elseif_node = ElseIf(elseif_condition, elseif_body)
-            elseifs.append(elseif_node)
+            control_body = self.statement_list()
             self.eat(RCURL)
+
+        node = If(condition=condition, body=body, control_body=control_body)
+        return node
+
+    def elseif_statement(self):
+        self.eat(ELSEIF)
+        elseif_condition = self.conditional_statement()
+        self.eat(LCURL)
+        elseif_body = self.statement_list()
+        self.eat(RCURL)
+        control_body = self.empty()
+
+        while self.current_token.type == ELSEIF:
+            control_body = self.elseif_statement()
         if self.current_token.type == ELSE:
             self.eat(ELSE)
             self.eat(LCURL)
-            else_body = self.statement_list()
+            control_body = self.statement_list()
             self.eat(RCURL)
-        node = If(condition=condition, body=body, elseif_body=elseifs, else_body=else_body)
+
+        node = If(condition=elseif_condition, body=elseif_body, control_body=control_body)
         return node
 
     ################

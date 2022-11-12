@@ -62,7 +62,7 @@ class Lexer(object):
         self.current_token = None
         self.current_char = self.text[self.pos]
 
-    def error(self):
+    def error(self, message):
         raise Exception('Invalid syntax')
 
     def advance(self):
@@ -129,6 +129,13 @@ class Lexer(object):
             result += self.current_char
             self.advance()
 
+        if self.current_char == ' ' and self.peek(1) == 'i' and self.peek(2) == 'f' and self.peek(3) == ' ':
+            self.advance()
+            self.advance()
+            self.advance()
+            self.advance()
+            return token.Token(ELSEIF, 'else if')
+
         tok = RESERVED_KEYWORDS.get(result, token.Token(ID, result))
         return tok
 
@@ -186,7 +193,7 @@ class Lexer(object):
                 self.advance()
                 return token.Token(RCURL, '}')
 
-            if self.current_char == '=':
+            if self.current_char == '=' and self.peek(1) != '=':
                 self.advance()
                 return token.Token(ASSIGN, '=')
 
@@ -210,11 +217,11 @@ class Lexer(object):
                 self.advance()
                 return token.Token(GE, '>=')
 
-            if self.current_char == '>':
+            if self.current_char == '>' and self.peek(1) != '=':
                 self.advance()
                 return token.Token(GT, '>')
 
-            if self.current_char == '<':
+            if self.current_char == '<' and self.peek(1) != '=':
                 self.advance()
                 return token.Token(LT, '<')
 
@@ -243,7 +250,7 @@ class Lexer(object):
                 self.advance()
                 return token.Token(ELSEIF, 'else if')
 
-            if self.current_char == 'e' and self.peek(1) == 'l' and self.peek(2) == 's' and self.peek(3) == 'e':
+            if self.current_char == 'e' and self.peek(1) == 'l' and self.peek(2) == 's' and self.peek(3) == 'e' and self.peek(5) != 'i':
                 self.advance()
                 self.advance()
                 self.advance()

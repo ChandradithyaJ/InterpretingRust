@@ -103,14 +103,18 @@ class Interpreter(NodeVisitor):
             return val
 
     def visit_If(self, node):
-        pass
-
-    def visit_ElseIf(self, node):
-        pass
+        if self.visit(node.condition):
+            self.visit(node.body)
+        else:
+            self.visit(node.control_body)
 
     def visit_While(self, node):
         while self.visit(node.condition):
             self.visit(node.body)
+
+    def visit_list(self, node):
+        for child in node:
+            self.visit(child)
 
     def visit_Compare(self, node):
         pass

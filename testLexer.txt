@@ -3,7 +3,10 @@ let b = 5;
 if 4 > 3 {
     let y = 89;
 }
-let o =6 ;
+else if 6 == 9{
+    let met = 9;
+}
+let o ="dcf";
 while 6 > 7 {
     let h = 5;
 }
