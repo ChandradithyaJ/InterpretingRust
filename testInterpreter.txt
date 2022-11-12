@@ -1,0 +1,6 @@
+let a = (6+7)*3;
+a = a+1;
+let b = 8 < 7;
+let my_name = "Chandra";
+let d = 56/3;
+my_name = my_name + "dithya";

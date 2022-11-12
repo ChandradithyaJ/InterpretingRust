@@ -156,7 +156,7 @@ class Parser(object):
                         | assignment_statement
                         | empty
         """
-        if self.current_token.type == LET:
+        if self.current_token.type == LET or self.current_token.type == ID:
             node = self.assignment_statement()
         elif self.current_token.type == IF:
             node = self.if_statement()
@@ -230,7 +230,8 @@ class Parser(object):
         """
         variable:   ID
         """
-        self.eat(LET)
+        if self.current_token.type == LET:
+            self.eat(LET)
         node = Var(self.current_token)
         return node
 
@@ -269,7 +270,7 @@ class Parser(object):
 
     def term(self):
         node = self.factor()
-        while self.current_token.type in (MULTIPLY, DIVIDE, MODULO):
+        while self.current_token.type in (MULTIPLY, DIVIDE, MODULO, EQ, NE, LT, GT, LE, GE):
             token = self.current_token
             if token.type == MULTIPLY:
                 self.eat(MULTIPLY)
@@ -277,6 +278,18 @@ class Parser(object):
                 self.eat(DIVIDE)
             elif token.type == MODULO:
                 self.eat(MODULO)
+            elif token.type == EQ:
+                self.eat(EQ)
+            elif token.type == NE:
+                self.eat(NE)
+            elif token.type == LT:
+                self.eat(LT)
+            elif token.type == GT:
+                self.eat(GT)
+            elif token.type == LE:
+                self.eat(LE)
+            elif token.type == GE:
+                self.eat(GE)
             node = BinOP(left=node, op=token, right=self.factor())
 
         return node
@@ -292,6 +305,9 @@ class Parser(object):
         elif token.type == STR:
             self.eat(STR)
             return Num(token)
+        elif token.type == ID:
+            self.eat(ID)
+            return Var(token)
         elif token.type == LPAREN:
             self.eat(LPAREN)
             node = self.expr()
