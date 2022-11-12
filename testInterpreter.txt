@@ -4,3 +4,6 @@ let b = 8 < 7;
 let my_name = "Chandra";
 let d = 56/3;
 my_name = my_name + "dithya";
+while a < 45 {
+    a = a+1;
+}
