@@ -1,5 +1,6 @@
 INTEGER = 'INTEGER'
 NUMBER = 'NUMBER'
+STR = 'STR'
 TRUE = 'true'
 FALSE = 'false'
 
@@ -26,15 +27,19 @@ SEMI = ';'
 ID = 'ID'
 COMMA = ','
 DOT = '.'
+QUO = '"'
 
 FOR = 'for'
 IF = 'if'
 ELSEIF = 'else if'
 ELSE = 'else'
-LET = 'let'
+LETMUT = 'let mut'
 WHILE = 'while'
 
+FN = 'fn'
+MAIN = 'main'
 EOF = 'EOF'
+
 
 class Token(object):
     def __init__(self, type, value):

@@ -35,9 +35,11 @@ FOR = 'for'
 IF = 'if'
 ELSEIF = 'else if'
 ELSE = 'else'
-LET = 'let'
+LETMUT = 'let mut'
 WHILE = 'while'
 
+FN = 'fn'
+MAIN = 'main'
 EOF = 'EOF'
 
 # identifiers: for, if, else if, else, while
@@ -47,7 +49,9 @@ RESERVED_KEYWORDS = {
     'else if': token.Token(ELSEIF, 'else if'),
     'else': token.Token(ELSE, 'else'),
     'while': token.Token(WHILE, 'while'),
-    'let': token.Token(LET, 'let'),
+    'let mut': token.Token(LETMUT, 'let mut'),
+    'fn': token.Token(FN, 'fn'),
+    'main': token.Token(MAIN, 'main')
 }
 
 class Lexer(object):
@@ -135,6 +139,14 @@ class Lexer(object):
             self.advance()
             self.advance()
             return token.Token(ELSEIF, 'else if')
+
+        if self.current_char == ' ' and self.peek(1) == 'm' and self.peek(2) == 'u' and self.peek(3) == 't' and self.peek(4) == ' ':
+            self.advance()
+            self.advance()
+            self.advance()
+            self.advance()
+            self.advance()
+            return token.Token(LETMUT, 'let mut')
 
         tok = RESERVED_KEYWORDS.get(result, token.Token(ID, result))
         return tok

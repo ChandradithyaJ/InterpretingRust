@@ -36,9 +36,11 @@ FOR = 'for'
 IF = 'if'
 ELSEIF = 'else if'
 ELSE = 'else'
-LET = 'let'
+LETMUT = 'let mut'
 WHILE = 'while'
 
+FN = 'fn'
+MAIN = 'main'
 EOF = 'EOF'
 
 

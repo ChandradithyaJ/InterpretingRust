@@ -1,18 +1,20 @@
-let a = (6+7)*3;
-a = a+1;
-let b = 8 < 7;
-let my_name = "Chandra";
-let d = 56/3;
-my_name = my_name + "dithya";
-while a < 45 {
+fn main(){
+    let mut a = (6+7)*3;
     a = a+1;
-}
-if a < 40 {
-    my_name = my_name + " J";
-}
-else if a == 45 {
-    my_name = my_name + " J";
-}
-else {
-    my_name = my_name + " J";
+    let mut b = 8 < 7;
+    let mut my_name = "Chandra";
+    let mut d = 56/3;
+    my_name = my_name + "dithya";
+    while a < 45 {
+        a = a+1;
+    }
+    if a < 40 {
+        my_name = my_name + " J";
+    }
+    else if a == 45 {
+        my_name = my_name + " J";
+    }
+    else {
+        my_name = my_name + " J";
+    }
 }

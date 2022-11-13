@@ -35,9 +35,11 @@ FOR = 'for'
 IF = 'if'
 ELSEIF = 'else if'
 ELSE = 'else'
-LET = 'let'
+LETMUT = 'let mut'
 WHILE = 'while'
 
+FN = 'fn'
+MAIN = 'main'
 EOF = 'EOF'
 
 
@@ -76,6 +78,7 @@ class If(AST):
         self.condition = condition
         self.body = body
         self.control_body = control_body
+        # control-flow statements
 
 
 class While(AST):
@@ -117,8 +120,14 @@ class Parser(object):
             self.error()
 
     def program(self):
-        """program:     compound_statement EOF"""
+        """program:     fn main() { compound_statement } EOF"""
+        self.eat(FN)
+        self.eat(MAIN)
+        self.eat(LPAREN)
+        self.eat(RPAREN)
+        self.eat(LCURL)
         node = self.compound_statement()
+        self.eat(RCURL)
         return node
 
     def compound_statement(self):
@@ -150,7 +159,7 @@ class Parser(object):
                         | assignment_statement
                         | empty
         """
-        if self.current_token.type == LET or self.current_token.type == ID:
+        if self.current_token.type == LETMUT or self.current_token.type == ID:
             node = self.assignment_statement()
         elif self.current_token.type == IF:
             node = self.if_statement()
@@ -240,8 +249,8 @@ class Parser(object):
         """
         variable:   ID
         """
-        if self.current_token.type == LET:
-            self.eat(LET)
+        if self.current_token.type == LETMUT:
+            self.eat(LETMUT)
         node = Var(self.current_token)
         return node
 
