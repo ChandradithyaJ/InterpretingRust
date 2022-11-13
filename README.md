@@ -142,6 +142,6 @@ Let’s take a look at the following Pascal program, specifically at the variabl
 
 ![image](https://user-images.githubusercontent.com/110807370/201344359-6503ca84-5424-412e-a632-12b65152a28a.png)
 
-
+references and some of pics above [ruslan's vlog](https://ruslanspivak.com/)
 
 
