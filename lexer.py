@@ -166,8 +166,8 @@ class Lexer(object):
         return tok
 
     def get_next_token(self):
-        "Lexical Analyzer"
-        "Breaks the input into tokens"
+        """Lexical Analyzer"""
+        """Breaks the input into tokens"""
 
         while self.current_char is not None:
 
