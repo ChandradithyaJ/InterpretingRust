@@ -1,14 +1,15 @@
 fn main(){
-let mut a = (6+7)*3;
-let mut b = 5;
-if 4 > 3 {
-    let mut y = 89;
-}
-else if 6 == 9{
-    let mut met = 9;
-}
-let mut o ="dcf";
-while 6 > 7 {
-    let mut h = 5;
-}
+    // this is a lexer test
+    let mut a = (6+7)*3;
+    let mut b = 5;
+    if 4 > 3 {
+        let mut y = 89;
+    }
+    else if 6 == 9{
+        let mut met = 9;
+    }
+    let mut o ="dcf";
+    while 6 > 7 {
+        let mut h = 5;
+    }
 }

@@ -1,33 +1,21 @@
 fn main(){
-    let mut a = (6+7)*3;  //adminsncsdvoisdabSO_?*nbwb 1*1 :)
+    // this is an interpreter text
+    let mut a = (6+7)*3;
     a = a+1;
     let mut b = 8 < 7;
     let mut my_name = "Chandra";
     let mut d = 56/3;
     my_name = my_name + "dithya";
     while a < 45 {
-        a = a+1;  //adminsncsdvoisdabSO_?*nbwb 1*1 :)
+        a = a+1;
     }
-    //isvhaoinoin
-    if a < 40 {       //adminsncsdvoisdabSO_?*nbwb 1*1 :)
-        my_name = my_name + " J";     //adminsncsdvoisdabSO_?*nbwb 1*1 :)
+    if a < 40 {
+        my_name = my_name + " J";
     }
     else if a == 45 {
-        //adminsncsdvoisdabSO_?*nbwb 1*1 :) 
-        my_name = my_name + " J";/* this is a
-    Multiline
-    comment O_?*nbwb 1*1 :)
-    */
+        my_name = my_name + " J";
     }
-    /* this is a
-    Multiline
-    commentbSO_?*nbwb 1*1 :)
-    */
     else {
-        my_name = my_name + " J";//adminsncsdvoisdabSO_?*nbwb 1*1 :)
-        /* this is a
-    Multiline
-    commentbSO_?*nbwb 1*1 :)
-    */
+        my_name = my_name + " J";
     }
 }
