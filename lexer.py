@@ -30,6 +30,8 @@ ID = 'ID'
 COMMA = ','
 DOT = '.'
 QUO = '"'
+SLASH = '/'
+DSLASH = '//'
 
 FOR = 'for'
 IF = 'if'
@@ -53,6 +55,7 @@ RESERVED_KEYWORDS = {
     'fn': token.Token(FN, 'fn'),
     'main': token.Token(MAIN, 'main')
 }
+
 
 class Lexer(object):
     def __init__(self, text):
@@ -91,6 +94,17 @@ class Lexer(object):
             if self.current_char == '\n':
                 self.line += 1
             self.advance()
+
+    def skip_comments(self):
+        if self.current_char == '/' and self.peek(1) == '/':
+            self.advance()
+            self.advance()
+            while self.current_char != '\n':
+                self.advance()
+            self.advance()
+
+        # skip multi-line comments
+        # Ha! Rust doesn't have a different symbol for multi-line comments
 
     def number(self):
         # return an integer or a float read in from the input
@@ -157,23 +171,10 @@ class Lexer(object):
 
         while self.current_char is not None:
 
-            if self.current_char == chr(47) and self.peek(1) == chr(47):
-                self.advance()
-                self.advance()
-                while self.current_char != '\n':
-                    self.advance()
-                self.advance()
+            if self.current_char == '/' and self.peek(1) == '/':
+                self.skip_comments()
+                continue
 
-
-            if self.current_char == '/' and self.peek(1) == '*':
-                self.advance()
-                self.advance()
-                while self.current_char != '*' or self.peek(1) != '/':
-                    self.advance()
-                self.advance()
-                self.advance()
-
-                
             if self.current_char.isspace():
                 self.skip_white_space()
                 continue
@@ -199,7 +200,7 @@ class Lexer(object):
                 self.advance()
                 return token.Token(MULTIPLY, '*')
 
-            if self.current_char == '/':
+            if self.current_char == '/' and self.peek(1) != '/':
                 self.advance()
                 return token.Token(DIVIDE, '/')
 
