@@ -156,6 +156,13 @@ class Lexer(object):
         "Breaks the input into tokens"
 
         while self.current_char is not None:
+            if self.current_char == chr(47) and self.peek(1) == chr(47):
+                self.advance()
+                self.advance()
+                while self.current_char != '\n':
+                    self.advance()
+
+
             if self.current_char.isspace():
                 self.skip_white_space()
                 continue
