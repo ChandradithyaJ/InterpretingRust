@@ -1,5 +1,29 @@
 import token
 
+from enum import Enum
+
+class ErrorCode(Enum):
+    UNEXPECTED_TOKEN = 'Unexpected token'
+    ID_NOT_FOUND     = 'Identifier not found'
+    DUPLICATE_ID     = 'Duplicate id found'
+
+class Error(Exception):
+    def __init__(self, error_code=None, token=None, message=None):
+        self.error_code = error_code
+        self.token = token
+        # add exception class name before the message
+        self.message = f'{self.__class__.__name__}: {message}'
+
+class LexerError(Error):
+    pass
+
+class ParserError(Error):
+    pass
+
+class SemanticError(Error):
+    pass
+
+
 INTEGER = 'INTEGER'
 NUMBER = 'NUMBER'
 STR = 'STR'
@@ -30,18 +54,15 @@ ID = 'ID'
 COMMA = ','
 DOT = '.'
 QUO = '"'
-SLASH = '/'
-DSLASH = '//'
 
 FOR = 'for'
 IF = 'if'
 ELSEIF = 'else if'
 ELSE = 'else'
-LETMUT = 'let mut'
+LET = 'let'
 WHILE = 'while'
+PRINT = 'println!'
 
-FN = 'fn'
-MAIN = 'main'
 EOF = 'EOF'
 
 # identifiers: for, if, else if, else, while
@@ -51,11 +72,9 @@ RESERVED_KEYWORDS = {
     'else if': token.Token(ELSEIF, 'else if'),
     'else': token.Token(ELSE, 'else'),
     'while': token.Token(WHILE, 'while'),
-    'let mut': token.Token(LETMUT, 'let mut'),
-    'fn': token.Token(FN, 'fn'),
-    'main': token.Token(MAIN, 'main')
+    'let': token.Token(LET, 'let'),
+    'println!': token.Token(PRINT, 'println!'),
 }
-
 
 class Lexer(object):
     def __init__(self, text):
@@ -65,21 +84,31 @@ class Lexer(object):
         self.pos = 0
         # line of the text
         self.line = 1
+        self.column = 1
         # current token
         self.current_token = None
         self.current_char = self.text[self.pos]
 
-    def error(self, message):
-        raise Exception('Invalid syntax')
-
+    def error(self):
+        s = "Lexer error on '{lexeme}' line: {line} column: {column}".format(
+            lexeme=self.current_char,
+            lineno=self.line,
+            column=self.column,
+            )
+        raise LexerError(message=s)
+        
     def advance(self):
         # advance the pos variable to go to the next char
+        if self.current_char == '\n':
+            self.line += 1
+            self.column = 0
         self.pos += 1
 
         if self.pos > len(self.text) - 1:
             self.current_char = None
         else:
             self.current_char = self.text[self.pos]
+            self.column += 1
 
     def peek(self, n):
         peek_pos = self.pos + n
@@ -94,17 +123,6 @@ class Lexer(object):
             if self.current_char == '\n':
                 self.line += 1
             self.advance()
-
-    def skip_comments(self):
-        if self.current_char == '/' and self.peek(1) == '/':
-            self.advance()
-            self.advance()
-            while self.current_char != '\n':
-                self.advance()
-            self.advance()
-
-        # skip multi-line comments
-        # Ha! Rust doesn't have a different symbol for multi-line comments
 
     def number(self):
         # return an integer or a float read in from the input
@@ -143,38 +161,18 @@ class Lexer(object):
     def _id(self):
         # handles identifiers and reserved keywords
         result = ''
-        while self.current_char is not None and (self.current_char.isalnum() or self.current_char == '_'):
+        while self.current_char is not None and self.current_char.isalnum():
             result += self.current_char
             self.advance()
-
-        if self.current_char == ' ' and self.peek(1) == 'i' and self.peek(2) == 'f' and self.peek(3) == ' ':
-            self.advance()
-            self.advance()
-            self.advance()
-            self.advance()
-            return token.Token(ELSEIF, 'else if')
-
-        if self.current_char == ' ' and self.peek(1) == 'm' and self.peek(2) == 'u' and self.peek(3) == 't' and self.peek(4) == ' ':
-            self.advance()
-            self.advance()
-            self.advance()
-            self.advance()
-            self.advance()
-            return token.Token(LETMUT, 'let mut')
 
         tok = RESERVED_KEYWORDS.get(result, token.Token(ID, result))
         return tok
 
     def get_next_token(self):
-        """Lexical Analyzer"""
-        """Breaks the input into tokens"""
+        "Lexical Analyzer"
+        "Breaks the input into tokens"
 
         while self.current_char is not None:
-
-            if self.current_char == '/' and self.peek(1) == '/':
-                self.skip_comments()
-                continue
-
             if self.current_char.isspace():
                 self.skip_white_space()
                 continue
@@ -200,7 +198,7 @@ class Lexer(object):
                 self.advance()
                 return token.Token(MULTIPLY, '*')
 
-            if self.current_char == '/' and self.peek(1) != '/':
+            if self.current_char == '/':
                 self.advance()
                 return token.Token(DIVIDE, '/')
 
@@ -224,7 +222,7 @@ class Lexer(object):
                 self.advance()
                 return token.Token(RCURL, '}')
 
-            if self.current_char == '=' and self.peek(1) != '=':
+            if self.current_char == '=':
                 self.advance()
                 return token.Token(ASSIGN, '=')
 
@@ -248,11 +246,11 @@ class Lexer(object):
                 self.advance()
                 return token.Token(GE, '>=')
 
-            if self.current_char == '>' and self.peek(1) != '=':
+            if self.current_char == '>':
                 self.advance()
                 return token.Token(GT, '>')
 
-            if self.current_char == '<' and self.peek(1) != '=':
+            if self.current_char == '<':
                 self.advance()
                 return token.Token(LT, '<')
 
@@ -281,7 +279,7 @@ class Lexer(object):
                 self.advance()
                 return token.Token(ELSEIF, 'else if')
 
-            if self.current_char == 'e' and self.peek(1) == 'l' and self.peek(2) == 's' and self.peek(3) == 'e' and self.peek(5) != 'i':
+            if self.current_char == 'e' and self.peek(1) == 'l' and self.peek(2) == 's' and self.peek(3) == 'e':
                 self.advance()
                 self.advance()
                 self.advance()
@@ -296,6 +294,18 @@ class Lexer(object):
                 self.advance()
                 self.advance()
                 return token.Token(WHILE, 'while')
+            
+            if self.current_char == 'p' and self.peek(1) == 'r' and self.peek(2) == 'i' and self.peek(3) == 'n' and self.peek(4) == 't' and self.peek(5) == 'l' and self.peek(6) == 'n' and self.peek(7) == '!':
+                self.advance()
+                self.advance()
+                self.advance()
+                self.advance()
+                self.advance()
+                self.advance()
+                self.advance()
+                self.advance()
+                return token.Token(PRINT, 'println!')
+                
 
             if self.current_char == chr(26):
                 return token.Token(EOF, 'EOF')
