@@ -1,4 +1,32 @@
 import token
+from enum import Enum
+
+
+class ErrorCode(Enum):
+    UNEXPECTED_TOKEN = 'Unexpected token'
+    ID_NOT_FOUND = 'Identifier not found'
+    DUPLICATE_ID = 'Duplicate id found'
+
+
+class Error(Exception):
+    def __init__(self, error_code=None, token=None, message=None):
+        self.error_code = error_code
+        self.token = token
+        # add exception class name before the message
+        self.message = f'{self.__class__.__name__}: {message}'
+
+
+class LexerError(Error):
+    pass
+
+
+class ParserError(Error):
+    pass
+
+
+class SemanticError(Error):
+    pass
+
 
 INTEGER = 'INTEGER'
 NUMBER = 'NUMBER'
@@ -65,12 +93,19 @@ class Lexer(object):
         self.pos = 0
         # line of the text
         self.line = 1
+        # column of the text
+        self.column = 1
         # current token
         self.current_token = None
         self.current_char = self.text[self.pos]
 
-    def error(self, message):
-        raise Exception('Invalid syntax')
+    def error(self):
+        s = "Lexer error on '{lexeme}' line: {line} column: {column}".format(
+            lexeme=self.current_char,
+            line=self.line,
+            column=self.column,
+            )
+        raise LexerError(message=s)
 
     def advance(self):
         # advance the pos variable to go to the next char
@@ -80,6 +115,7 @@ class Lexer(object):
             self.current_char = None
         else:
             self.current_char = self.text[self.pos]
+            self.column += 1
 
     def peek(self, n):
         peek_pos = self.pos + n

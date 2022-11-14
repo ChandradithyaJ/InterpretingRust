@@ -1,4 +1,32 @@
 import lexer
+from enum import Enum
+
+
+class ErrorCode(Enum):
+    UNEXPECTED_TOKEN = 'Unexpected token'
+    ID_NOT_FOUND = 'Identifier not found'
+    DUPLICATE_ID = 'Duplicate id found'
+
+
+class Error(Exception):
+    def __init__(self, error_code=None, token=None, message=None):
+        self.error_code = error_code
+        self.token = token
+        # add exception class name before the message
+        self.message = f'{self.__class__.__name__}: {message}'
+
+
+class LexerError(Error):
+    pass
+
+
+class ParserError(Error):
+    pass
+
+
+class SemanticError(Error):
+    pass
+
 
 INTEGER = 'INTEGER'
 NUMBER = 'NUMBER'
@@ -30,6 +58,8 @@ ID = 'ID'
 COMMA = ','
 DOT = '.'
 QUO = '"'
+SLASH = '/'
+DSLASH = '//'
 
 FOR = 'for'
 IF = 'if'
@@ -110,14 +140,21 @@ class Parser(object):
         self.lexer = lexer
         self.current_token = self.lexer.get_next_token()
 
-    def error(self):
-        raise Exception('Invalid Syntax')
+    def error(self, error_code, token):
+        raise ParserError(
+            error_code=error_code,
+            token=token,
+            message=f'{error_code.value} -> {token}',
+        )
 
     def eat(self, token_type):
         if self.current_token.type == token_type:
             self.current_token = self.lexer.get_next_token()
         else:
-            self.error()
+            self.error(
+                error_code=ErrorCode.UNEXPECTED_TOKEN,
+                token=self.current_token,
+            )
 
     def program(self):
         """program:     fn main() { compound_statement } EOF"""
