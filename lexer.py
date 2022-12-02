@@ -1,3 +1,15 @@
+"""
+Lexer 
+
+Authors:
+CS21B059 Chandradithya
+CS21B038 Nandhavardhan
+CS21B033 Karthikeya
+CS21B026 Karthik Prasad
+CS21B010 Banoth Jyoshna
+CS21B016 C Dakshayani
+"""
+
 import token
 from enum import Enum
 
