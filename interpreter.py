@@ -1,13 +1,15 @@
 """
-AST
+
+Semantic Analyzer
 
 Authors:
-CS21B059 Chandradithya
-CS21B038 Nandhavardhan
+CS21B059 Chandradithya J
+CS21B037 Nandhavardhan
 CS21B033 Karthikeya
 CS21B026 Karthik Prasad
 CS21B010 Banoth Jyoshna
 CS21B016 C Dakshayani
+
 """
 
 import lexer
@@ -50,6 +52,8 @@ ELSEIF = 'else if'
 ELSE = 'else'
 LETMUT = 'let mut'
 WHILE = 'while'
+SLASH = '/'
+DSLASH = '//'
 
 FN = 'fn'
 MAIN = 'main'
@@ -144,7 +148,7 @@ class Interpreter(NodeVisitor):
 def main():
     import sys
 
-    with open('testInterpreter.txt') as f:
+    with open('test2.rs') as f:
         text = f.read()
     lex = lexer.Lexer(text)
     par = parser.Parser(lex)
@@ -154,5 +158,5 @@ def main():
 
 
 if __name__ == '__main__':
-        main()
+    main()
 

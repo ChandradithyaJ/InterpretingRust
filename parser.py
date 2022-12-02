@@ -1,9 +1,9 @@
 """
-Parser 
+Parser
 
 Authors:
-CS21B059 Chandradithya
-CS21B038 Nandhavardhan
+CS21B059 Chandradithya J
+CS21B037 Nandhavardhan
 CS21B033 Karthikeya
 CS21B026 Karthik Prasad
 CS21B010 Banoth Jyoshna
@@ -321,7 +321,9 @@ class Parser(object):
         """
         expr   : term ((PLUS | MINUS) term)*
         term   : factor ((MUL | DIV) factor)*
-        factor : INTEGER | LPAREN expr RPAREN
+        factor : INTEGER 
+                 | NUMBER
+                 | LPAREN expr RPAREN
         """
         node = self.term()
 
@@ -386,6 +388,37 @@ class Parser(object):
             return node
 
     def parse(self):
+        """
+        program                 :     fn main() { compound_statement } EOF
+
+        compound_statement      :     { statement_list }
+
+        statement_list          :     statement
+                                    | statement SEMI statement_list
+
+        statement              :      compound_statement
+                                    | assignment_statement
+                                    | empty
+
+        assignment_statement    :     variable ASSIGN expr
+
+        if_statement            :      expr comparison_operator expr { statement_list } 
+                                        (else if* | else | empty)
+
+        while_statement         :	     expr comparison_operator expr { statement_list }
+        
+        conditional_statement: expr comparison_operator expr
+
+        variable                :      ID
+
+        expr                    :      term { (PLUS | MINUS) term }
+        
+        term                    :      factor { (MUL | DIV) factor }
+        
+        factor                  :      INTEGER 
+                                    |  NUMBER
+                                    |  LPAREN expr RPAREN
+        """
         node = self.program()
         while self.current_token.type != EOF:
             self.error()
