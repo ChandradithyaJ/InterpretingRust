@@ -148,7 +148,7 @@ class Interpreter(NodeVisitor):
 def main():
     import sys
 
-    with open('test2.rs') as f:
+    with open('Rust Test Files/test2.rs') as f:
         text = f.read()
     lex = lexer.Lexer(text)
     par = parser.Parser(lex)
