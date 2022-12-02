@@ -61,6 +61,38 @@ Parser:
   Just to make things clear, terms are separated by '+' or '-' operators and factors are
   the result from expressions inside parentheses, or variables or numbers separated by
   '*', '/' or '%' operators. All of these are evaluated in the expr() function.
+  
+  BNF followed:
+  
+  program                 :     fn main() { compound_statement } EOF
+
+  compound_statement      :     { statement_list }
+
+  statement_list          :     statement
+                              | statement SEMI statement_list
+
+  statement              :      compound_statement
+                              | assignment_statement
+                              | empty
+
+  assignment_statement    :     variable ASSIGN expr
+
+  if_statement            :      expr comparison_operator expr { statement_list } 
+                                 (else if* | else | empty)
+
+  while_statement         :	     expr comparison_operator expr { statement_list }
+  
+  conditional_statement: expr comparison_operator expr
+
+  variable                :      ID
+
+  expr                    :      term { (PLUS | MINUS) term }
+  
+  term                    :      factor { (MUL | DIV) factor }
+  
+  factor                  :      INTEGER 
+                               | NUMBER
+                               | LPAREN expr RPAREN
 
 Semantic analyzer:
   CS21B059 Chandradithya
