@@ -1,0 +1,6 @@
+fn main(){
+  // only comments
+  // this is just to show that 
+  // multiline comments can be skipped
+  // Have a nice day!
+}
