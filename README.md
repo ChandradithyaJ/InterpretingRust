@@ -123,4 +123,4 @@ ReadMe File and BNF compilation:
 - CS21B033 Karthikeya
 
 **To run the interpreter on the different test files given, change the name of the test file (for example, test2.txt).**
-A Git repo was used for version control: https://github.com/ChandradithyaJ/InterpretingRust
+- A Git repo was used for version control: https://github.com/ChandradithyaJ/InterpretingRust
