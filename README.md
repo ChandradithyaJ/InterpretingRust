@@ -18,14 +18,12 @@ Four .py files make up the whole interpreter created **- token.py, lexer.py, par
 
 **Lexer**:
 
-Members contributed:
-
 - CS21B059 Chandradithya
 - CS21B033 Karthikeya 
-- CS21B016 Dakshayni
+- CS21B016 Dakshayani
 - CS21B010 Jyoshna
 
-`  `**Input**: Rust test file
+`  `**Input**: Rust test file (but in .txt format)
 
 `  `**Output**: The next token(number/identifier/keyword/...)
 
@@ -43,7 +41,7 @@ Members contributed:
 
 `  `**Input**: Output of the Lexer is the input 
 
-`  `**Output**: The AST(Abstract Syntax Tree)
+`  `**Output**: The AST (Abstract Syntax Tree)
 
 
 
@@ -57,7 +55,7 @@ Members contributed:
 
 
 
-`  `**BNF**(BACKUS NAUR FORM) followed:
+`  `**BNF** (BACKUS NAUR FORM) followed:
 
 - program                 :     fn main() { compound\_statement } EOF
 
@@ -123,3 +121,5 @@ ReadMe File and BNF compilation:
 ` `Error Messaging:
 
 - CS21B033 Karthikeya
+
+**To run the interpreter on the different test files given, change the name of the test file (for example, test2.txt).**
