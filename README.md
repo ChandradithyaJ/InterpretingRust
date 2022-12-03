@@ -123,4 +123,9 @@ ReadMe File and BNF compilation:
 - CS21B033 Karthikeya
 
 **To run the interpreter on the different test files given, change the name of the test file (for example, test2.txt).** <br>
+
+` `**Challenges and Learnings**
+  - We have learnt how to apply the BNF to build interpreters.
+  - Understanding and implementing the NodeVisitor was challenging, but going through a few examples and contemplating how we wished to store the data was extremely helpful. 
+  
 ` `A Git repo was used for version control: https://github.com/ChandradithyaJ/InterpretingRust
