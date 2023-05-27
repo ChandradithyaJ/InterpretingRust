@@ -8,7 +8,7 @@ Rust is **a multi-paradigm, general-purpose** programming language. Rust emphasi
 
 **Constructs implemented:**
 
-- 1.**Arithmetic Operations**(Also includes the BODMAS rule)
+- 1.**Arithmetic Operations** (Also includes the BODMAS rule)
 - 2.Operations on **Strings** and **Characters**
 - 3.Assignment Operations for Strings, Characters, Integers, Floating Point Numbers
 - Numbers and Boolean Values(True/false)
